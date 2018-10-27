@@ -9,12 +9,12 @@ from keras.models import Sequential
 from keras.layers import Dense
 from collections import deque
 from model import CNN
-from retro_wrappers import wrap_deepmind_retro
+from retro_wrappers import wrap_deepmind_retro, StochasticFrameSkip
 
 GAMMA = 0.9
-MEMORY_SIZE = 250000
+MEMORY_SIZE = 800000
 BATCH_SIZE = 32
-TRAINING_FREQUENCY = 20
+TRAINING_FREQUENCY = 4
 OFFLINE_NETWORK_UPDATE_FREQUENCY = 40000
 MODEL_SAVE_UPDATE_FREQUENCY = 10000
 REPLAY_START_SIZE = 50000
@@ -75,8 +75,9 @@ if __name__ == '__main__':
         , ('A') : [0,0,0,0,0,0,0,0,1]
         , ('LEFT','A'): [0,0,0,0,0,0,1,0,1]
         , ('RIGHT', 'A'): [0,0,0,0,0,0,0,1,1]}
-
-    env = wrap_deepmind_retro(retro.make('SuperMarioBros-Nes', retro.State.DEFAULT))
+    env = retro.make('SuperMarioBros-Nes', retro.State.DEFAULT)
+    env = StochasticFrameSkip(env, n=4, stickprob=0.25)
+    env = wrap_deepmind_retro(env, scale=False)
     agent = Agent()
 
     total_step = 0
@@ -109,6 +110,7 @@ if __name__ == '__main__':
             
             if total_step % OFFLINE_NETWORK_UPDATE_FREQUENCY == 0:
                 print('Updating offline network...')
+                print('Current epsilon = {}'.format(agent.epsilon))
                 agent.offline.model.set_weights(agent.online.model.get_weights())
             
             if total_step % MODEL_SAVE_UPDATE_FREQUENCY == 0:
