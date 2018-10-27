@@ -9,10 +9,10 @@ from keras.models import Sequential
 from keras.layers import Dense
 from collections import deque
 from model import CNN
-from retro_wrappers import make_retro, wrap_deepmind_retro
+from retro_wrappers import wrap_deepmind_retro
 
-GAMMA = 0.99
-MEMORY_SIZE = 500000
+GAMMA = 0.9
+MEMORY_SIZE = 250000
 BATCH_SIZE = 32
 TRAINING_FREQUENCY = 20
 OFFLINE_NETWORK_UPDATE_FREQUENCY = 40000
@@ -82,11 +82,13 @@ if __name__ == '__main__':
     total_step = 0
     loss_history = []
     reward_history = []
+    current_episode = 0
 
     while True:
         current_state = env.reset()
         total_reward = 0
         done = False
+        current_episode += 1
 
         while True:
             # if total_step % 100 == 0:
@@ -120,5 +122,5 @@ if __name__ == '__main__':
             if info['lives'] != 2:
                 break 
 
-        print('Total reward = {}'.format(total_reward))
+        print('Episode: {}\tTotal reward = {}'.format(current_episode, total_reward))
         reward_history.append(total_reward)
