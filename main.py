@@ -103,7 +103,7 @@ if __name__ == '__main__':
 
             if total_step > REPLAY_START_SIZE and total_step % TRAINING_FREQUENCY == 0:
                 loss = agent.replay()
-                loss_history.append(loss)
+                # loss_history.append(loss)
             
             if total_step % OFFLINE_NETWORK_UPDATE_FREQUENCY == 0:
                 print('Updating offline network...')
