@@ -21,7 +21,7 @@ REPLAY_START_SIZE = 50000
 
 EPSILON_MAX = 1.0
 EPSILON_MIN = 0.1
-EXPLORATION_STEPS = 140000
+EXPLORATION_STEPS = 120000
 EPSILON_DECAY = (EPSILON_MAX - EPSILON_MIN) / EXPLORATION_STEPS
 
 PLAY_FROM_WEIGHTS = False
@@ -105,9 +105,12 @@ if __name__ == '__main__':
             action = action_dict[actions[action_number]]
             next_state, reward, done, info = env.step(action)
 
+            if reward == 0:
+                reward = -.1
+
             if info['lives'] != 2:
                 done = True
-                reward = -100
+                reward = -1
 
             agent.remember(current_state, action_number, reward, next_state, done)
 
@@ -121,7 +124,7 @@ if __name__ == '__main__':
             
             if total_step % OFFLINE_NETWORK_UPDATE_FREQUENCY == 0:
                 print('Updating offline network...')
-                print('Current epsilon = {}'.format(agent.epsilon))
+                print('Current epsilon = {0:.2f}'.format(agent.epsilon))
                 agent.offline.model.set_weights(agent.online.model.get_weights())
             
             if total_step % MODEL_SAVE_UPDATE_FREQUENCY == 0:
