@@ -105,12 +105,15 @@ if __name__ == '__main__':
             action = action_dict[actions[action_number]]
             next_state, reward, done, info = env.step(action)
 
-            if reward == 0:
+            if actions[action_number] == ('LEFT') or actions[action_number] == ('LEFT', 'A'):
                 reward = -.1
+            if actions[action_number] == ('RIGHT') or actions[action_number] == ('RIGHT', 'A'):
+                reward = .1
 
             if info['lives'] != 2:
                 done = True
                 reward = -1
+            print(reward)
 
             agent.remember(current_state, action_number, reward, next_state, done)
 
