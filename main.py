@@ -12,7 +12,7 @@ from model import CNN
 from retro_wrappers import wrap_deepmind_retro, StochasticFrameSkip
 
 GAMMA = 0.9
-MEMORY_SIZE = 800000
+MEMORY_SIZE = 500000
 BATCH_SIZE = 32
 TRAINING_FREQUENCY = 4
 OFFLINE_NETWORK_UPDATE_FREQUENCY = 40000
@@ -24,6 +24,8 @@ EPSILON_MIN = 0.1
 EXPLORATION_STEPS = 1000000
 EPSILON_DECAY = (EPSILON_MAX - EPSILON_MIN) / EXPLORATION_STEPS
 
+PLAY_FROM_WEIGHTS = False
+
 class Agent:
     def __init__(self):
         self.epsilon = EPSILON_MAX
@@ -33,6 +35,11 @@ class Agent:
 
         self.offline = CNN((4, 84, 84), 6)
         self.online = CNN((4, 84, 84), 6)
+        
+        if PLAY_FROM_WEIGHTS:
+            self.epsilon = 0.0
+            self.offline.model.load_weights('online_model.h5')
+            self.online.model.load_weights('online_model.h5')
 
     def remember(self, current_state, action, reward, next_state, done):
         self.memory.append((current_state, action, reward, next_state, done))
@@ -91,12 +98,16 @@ if __name__ == '__main__':
         done = False
         current_episode += 1
 
-        while True:
-            # if total_step % 100 == 0:
-            #     env.render()
+        while not done:
+            if PLAY_FROM_WEIGHTS:
+                env.render()
             action_number = agent.act(current_state)
             action = action_dict[actions[action_number]]
             next_state, reward, done, info = env.step(action)
+
+            if info['lives'] != 2:
+                done = True
+                reward = -100
 
             agent.remember(current_state, action_number, reward, next_state, done)
 
@@ -104,7 +115,7 @@ if __name__ == '__main__':
             total_reward += reward
             total_step += 1
 
-            if total_step > REPLAY_START_SIZE and total_step % TRAINING_FREQUENCY == 0:
+            if total_step > REPLAY_START_SIZE and total_step % TRAINING_FREQUENCY == 0 and not PLAY_FROM_WEIGHTS:
                 loss = agent.replay()
                 # loss_history.append(loss)
             
@@ -120,9 +131,6 @@ if __name__ == '__main__':
                     pickle.dump(reward_history, f)
 
                 agent.online.model.save('online_model.h5')
-
-            if info['lives'] != 2:
-                break 
 
         print('Episode: {}\tTotal reward = {}'.format(current_episode, total_reward))
         reward_history.append(total_reward)
