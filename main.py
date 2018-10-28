@@ -113,7 +113,6 @@ if __name__ == '__main__':
             if info['lives'] != 2:
                 done = True
                 reward = -1
-            print(reward)
 
             agent.remember(current_state, action_number, reward, next_state, done)
 
